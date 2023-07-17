@@ -86,19 +86,17 @@ $quesitons = $sql->fetchAll(PDO::FETCH_ASSOC);
                     $voterIp = $_SERVER['REMOTE_ADDR'];
                     $time = time();
 
-                    $wait_time = 120;
+                    $wait_time = 86400;
                     $time_diff = $time - $wait_time;
 
-                    $voterDbIp = 0;
-                    $voteDbTime = 0;
+                    $getVoters = $conn->prepare('SELECT * FROM sf_voters WHERE ip_address = ? AND vote_date >= ?');
+                    $getVoters->execute([$voterIp, $time_diff]);
 
-                    $getVoters = $conn->prepare('SELECT * FROM sf_voters WHERE ip_address = ? AND vote_date = ?');
-                    $getVoters->execute([$voterDbIp, $voteDbTime]);
-                    echo $voterDbIp. "<br>". $voteDbTime;
-                    if ($voterDbIp == $voterIp && $voteDbTime > $time_diff) {
-                        echo 'you can not';
+                    $voterCount = $getVoters->rowCount();
+
+                    if ($voterCount > 0) {
+                        echo "<div class='alert alert-danger mt-2'>You are not currently eligible to vote. Please try again after 24 hours of your last vote.</div>";
                     } else {
-
                         foreach ($answersCombine as $qId => $ans) {
                             $insertAnswers = $conn->prepare('INSERT INTO sf_answers (question_id, answer) VALUES (?,?)');
                             $insertAnswers->execute([
@@ -114,8 +112,10 @@ $quesitons = $sql->fetchAll(PDO::FETCH_ASSOC);
                             }
                         } //end of foreach
                     }
+
                 } else {
-                    echo "<div class='alert alert_danger mt-2' style='background-color:#e87d7d;'> Please answer all of the questions!</div>";
+                    echo "<div class='alert alert-danger mt-2'>Please answer all of the questions!</div>";
+                    
                 }
             }
             ?>
