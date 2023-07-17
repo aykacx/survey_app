@@ -11,11 +11,18 @@ $quesitons = $sql->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
+
+    <!-- CDNJS Fontawesome -->
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- CDNJS Fontawesome -->
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <!-- Bootstrap CSS -->
 
     <title>Survey Form</title>
 </head>
@@ -25,25 +32,91 @@ $quesitons = $sql->fetchAll(PDO::FETCH_ASSOC);
     <div class="row">
         <div class="col-md-4"></div>
         <div class="col-md-4 mt-4">
-            <center><h3>Questions</h3></center>
-            <?php if ($questionCount > 0) {
-                $q_alignment = 0;
-                foreach($quesitons as $question){
-                    $q_alignment++;
-             ?>
-            <div class="card mt-2">
-                <div class="card-header">
-                    <?php echo  $q_alignment."-".$question['question']; ?>
+            <center>
+                <h3>Questions</h3>
+            </center>
+            <form method="POST">
+                <!--start of php used for quesitons -->
+                <?php if ($questionCount > 0) {
+                    $q_alignment = 0;
+                    foreach ($quesitons as $question) {
+                        $q_alignment++;
+                        ?>
+                        <div class="card mt-2">
+                            <div class="card-header">
+                                <?php echo $q_alignment . "-" . $question['question']; ?>
+                            </div>
+                            <div class="card-body">
+                                <blockquote class="blockquote mb-0">
+                                    <!-- Hidden input gets question id value -->
+                                    <input type="hidden" value="<?php echo $question['id'] ?>" name="questionId[]">
+
+                                    <!-- Perfect button -->
+                                    <input type="radio" value="perfect" name="<?php echo 'question[]' . $q_alignment ?>">
+                                    <i class="fa-solid fa-face-grin-wide" style="color: green;"></i>
+
+                                    <!-- Not bad button -->
+                                    <input type="radio" value="not_bad" name="<?php echo 'question[]' . $q_alignment ?>">
+                                    <i class="fa-solid fa-face-meh" style="color: yellow;"></i>
+
+                                    <!-- Bad button -->
+                                    <input type="radio" value="bad" name="<?php echo 'question[]' . $q_alignment ?>">
+                                    <i class="fa-solid fa-face-frown" style="color: red;"></i>
+                                </blockquote>
+                            </div>
+                        </div>
+                        <?php
+                    }
+                } else {
+                    echo "<div class='alert alert_danger'>There is no question</div>";
+                }
+                ?><!--end of php used for quesitons -->
+
+                <!-- Submit button for send the answers -->
+                <div class="d-grid gap-2 mt-2">
+                    <input class="btn btn-success btn-block" value="Send" name="send" type="submit">
                 </div>
-                <div class="card-body">
-                    <blockquote class="blockquote mb-0">
-                        Answer
-                    </blockquote>
-                </div>
-            </div>
+            </form>
             <?php
-            }}else {
-                echo "<div class='alert alert_danger'>There is no question</div>";
+            if (isset($_POST['send'])) {
+                if (isset($_POST['question'])) {
+                    $answers = $_POST['question'];
+                    $q_id = $_POST['questionId'];
+                    $answersCombine = array_combine($q_id, $answers);
+                    $voterIp = $_SERVER['REMOTE_ADDR'];
+                    $time = time();
+
+                    $wait_time = 120;
+                    $time_diff = $time - $wait_time;
+
+                    $voterDbIp = 0;
+                    $voteDbTime = 0;
+
+                    $getVoters = $conn->prepare('SELECT * FROM sf_voters WHERE ip_address = ? AND vote_date = ?');
+                    $getVoters->execute([$voterDbIp, $voteDbTime]);
+                    echo $voterDbIp. "<br>". $voteDbTime;
+                    if ($voterDbIp == $voterIp && $voteDbTime > $time_diff) {
+                        echo 'you can not';
+                    } else {
+
+                        foreach ($answersCombine as $qId => $ans) {
+                            $insertAnswers = $conn->prepare('INSERT INTO sf_answers (question_id, answer) VALUES (?,?)');
+                            $insertAnswers->execute([
+                                $qId,
+                                $ans
+                            ]);
+                            if ($insertAnswers) {
+                                $insertVoter = $conn->prepare('INSERT INTO sf_voters (ip_address,vote_date) VALUES (?,?)');
+                                $insertVoter->execute([
+                                    $voterIp,
+                                    $time
+                                ]);
+                            }
+                        } //end of foreach
+                    }
+                } else {
+                    echo "<div class='alert alert_danger mt-2' style='background-color:#e87d7d;'> Please answer all of the questions!</div>";
+                }
             }
             ?>
         </div>

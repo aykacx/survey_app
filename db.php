@@ -15,4 +15,14 @@ try {
 } catch (PDOException $e) {
     die('connection failed:' . $e->getMessage() . 'code:' . $e->getCode());
 }
+
+function filter($value)
+{
+    $a = trim($value);
+    $b = strip_tags($a);
+    $c = htmlspecialchars($b, ENT_QUOTES);
+    $outcome = $c;
+
+    return $outcome;
+}
 ?>
