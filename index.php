@@ -66,16 +66,17 @@ $quesitons = $sql->fetchAll(PDO::FETCH_ASSOC);
                             </div>
                         </div>
                         <?php
-                    }
+                    } ?>
+
+                    <!-- Submit button for send the answers -->
+                    <div class="d-grid gap-2 mt-2">
+                        <input class="btn btn-success btn-block" value="Send" name="send" type="submit">
+                    </div>
+                <?php
                 } else {
-                    echo "<div class='alert alert_danger'>There is no question</div>";
+                    echo "<div class='alert alert-danger'>There is no question to show.</div>";
                 }
                 ?><!--end of php used for quesitons -->
-
-                <!-- Submit button for send the answers -->
-                <div class="d-grid gap-2 mt-2">
-                    <input class="btn btn-success btn-block" value="Send" name="send" type="submit">
-                </div>
             </form>
             <?php
             if (isset($_POST['send'])) {
@@ -86,7 +87,7 @@ $quesitons = $sql->fetchAll(PDO::FETCH_ASSOC);
                     $voterIp = $_SERVER['REMOTE_ADDR'];
                     $time = time();
 
-                    $wait_time = 86400;
+                    $wait_time = 2;
                     $time_diff = $time - $wait_time;
 
                     $getVoters = $conn->prepare('SELECT * FROM sf_voters WHERE ip_address = ? AND vote_date >= ?');
@@ -111,11 +112,12 @@ $quesitons = $sql->fetchAll(PDO::FETCH_ASSOC);
                                 ]);
                             }
                         } //end of foreach
+                        echo "<div class='alert alert-success mt-2'>Your vote has been succesfully submitted!</div>";
                     }
 
                 } else {
                     echo "<div class='alert alert-danger mt-2'>Please answer all of the questions!</div>";
-                    
+
                 }
             }
             ?>
