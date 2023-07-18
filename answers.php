@@ -122,6 +122,6 @@ $questions = $getQuestions->fetchAll(PDO::FETCH_ASSOC);
         integrity="sha384-fbbOQedDUMZZ5KreZpsbe1LCZPVmfTnH7ois6mU1QK+m14rQ1l2bGBq41eYeM/fS"
         crossorigin="anonymous"></script>
 </body>
-<?php $conn = ""; ?>
+<?php $conn = " "; ?>
 
 </html>

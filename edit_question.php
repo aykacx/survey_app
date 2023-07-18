@@ -1,9 +1,5 @@
 <?php
 include_once 'db.php';
-$getQuestions = $conn->prepare('SELECT * FROM sf_questions');
-$getQuestions->execute();
-$questionCount = $getQuestions->rowCount();
-$questions = $getQuestions->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!doctype html>
 <html lang="en">
@@ -32,57 +28,50 @@ $questions = $getQuestions->fetchAll(PDO::FETCH_ASSOC);
         }
     </style>
 
-    <title>Managment Panel</title>
+    <title>Edit question</title>
 </head>
 
 <body>
     <?php include_once 'header.php'; ?>
-    <center>
-        <h3>Managment Panel</h3>
-    </center>
+
     <div class="row">
         <div class="col-md-4"></div>
         <div class="col-md-4 mt-4">
-            <?php if ($questionCount > 0) { ?>
-                <table class="table table-success table-striped table-hover table-bordered">
-                    <thead>
-                        <tr>
-                            <th scope="col">Queue</th>
-                            <th scope="col">Question</th>
-                            <th scope="col">Transactions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        $q_alignment = 0;
-                        foreach ($questions as $question) {
-                            $q_alignment++;
-                            ?>
-                            <tr>
-                                <th scope="row">
-                                    <?php echo $q_alignment; ?>
-                                </th>
-                                <td>
-                                    <?php echo $question['question']; ?>
-                                </td>
-                                <td>
-                                    <a href="edit_question.php?question_id=<?php echo $question['id']; ?>" alt="Edit"
-                                        title="Edit question"><i class="fa-solid fa-square-pen"
-                                            style="color:blue; font-size:17px;"></i></a>
-                                    <a href="delete_question.php?question_id=<?php echo $question['id']; ?>" alt="Delete"
-                                        title="Delete question"><i class="fa-solid fa-trash" style="color: red;"></i></a>
-                                </td>
-                            </tr>
-                        <?php } //end of the foreach
-                        ?>
-                    </tbody>
-                </table>
-            <?php } else {
-                echo "<div class='alert alert-danger'>There is no question to show.</div>";
-            } ?>
-            <div class="d-grid gap-2 mt-2">
-                <a href="add_question.php" class="btn btn-outline-success btn-block">Add question</a>
-            </div>
+            <center>
+                <h3>Edit question</h3>
+            </center>
+            <?php
+            if (!$_GET['question_id']) {
+                header('location:managment_panel.php');
+            } else {
+                $q_id = $_GET['question_id'];
+                $getQuestions = $conn->prepare('SELECT * FROM sf_questions WHERE id=?');
+                $getQuestions->execute([$q_id]);
+                $questions = $getQuestions->fetch(PDO::FETCH_ASSOC);
+            }
+            ?>
+            <form method="POST">
+                <input type="text" class="form-control form-control-sm" value="<?php echo $questions['question']; ?>"
+                    name="question" Required>
+                <div class="d-grid gap-2 mt-2">
+                    <input class="btn btn-success btn-sm" name="submit" type="submit" value="Apply">
+                </div>
+            </form>
+            <?php
+            if (isset($_POST['submit'])) {
+                $editedQuestion = $_POST['question'];
+                $sql = 'UPDATE sf_questions SET question=:question_text WHERE id=:q_id';
+                $updateQuestion = $conn->prepare($sql);
+                $updateQuestion->bindParam(':question_text', $editedQuestion, PDO::PARAM_STR);
+                $updateQuestion->bindParam(':q_id', $q_id, PDO::PARAM_INT);
+                $updateQuestion->execute();
+                if ($updateQuestion) {
+                    header('location:managment_panel.php');
+                } else {
+                    echo 'The question couldnt be edited!';
+                }
+            }
+            ?>
         </div>
         <div class="col-md-4"></div>
     </div>
