@@ -32,11 +32,12 @@ $questions = $getQuestions->fetchAll(PDO::FETCH_ASSOC);
         }
     </style>
 
-    <title>Answers</title>
+    <title>Voting Rates</title>
 </head>
 
 <body>
     <?php include_once 'header.php'; ?>
+    <center><h3>Voting Rates</h3></center>
     <div class="row">
         <div class="col-md-4"></div>
         <div class="col-md-4 mt-4">
@@ -60,12 +61,33 @@ $questions = $getQuestions->fetchAll(PDO::FETCH_ASSOC);
                             aria-labelledby="panelsStayOpen-headingOne">
                             <div class="accordion-body">
                                 <?php 
-                                $getVotes = $conn->prepare('SELECT * FROM sf_voters WHERE id=?');
-                                $getVotes->execute([
+                                $getAnswers = $conn->prepare('SELECT * FROM sf_answers WHERE question_id=?');
+                                $getAnswers->execute([
                                     $question['id']
                                 ]);
-                                $voteCount = $getVotes->rowCount();
-                                echo $voteCount;
+                                $answerCount = $getAnswers->rowCount();
+                                $answers = $getAnswers->fetchAll(PDO::FETCH_ASSOC);
+
+                                $perfect = 0;
+                                $notBad = 0;
+                                $bad = 0;
+
+                                foreach ($answers as $answer) {
+                                    if ($answer['answer'] == 'perfect') {
+                                        $perfect++;
+                                    }else if ($answer['answer'] == 'not_bad') {
+                                        $notBad++;
+                                    }else if ($answer['answer'] == 'bad') {
+                                        $bad++;
+                                    }
+                                }
+                                $perfectRatio = ($perfect / $answerCount) * 100;
+                                $notBadRatio = ($notBad / $answerCount) * 100;
+                                $badRatio = ($bad / $answerCount) * 100;
+
+                                echo " <i class='fa-solid fa-face-grin-wide' style='color: green;'></i> " . number_format($perfectRatio, 1). "%";
+                                echo " <i class='fa-solid fa-face-meh' style='color: yellow;'></i> " . number_format($notBadRatio, 1). "%";
+                                echo " <i class='fa-solid fa-face-frown' style='color: red;'></i> " . number_format($badRatio, 1). "%";
                                 ?>
                             </div>
                         </div>
