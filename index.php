@@ -87,7 +87,7 @@ $quesitons = $sql->fetchAll(PDO::FETCH_ASSOC);
                     $voterIp = $_SERVER['REMOTE_ADDR'];
                     $time = time();
 
-                    $wait_time = 2;
+                    $wait_time = 86400;
                     $time_diff = $time - $wait_time;
 
                     $getVoters = $conn->prepare('SELECT * FROM sf_voters WHERE ip_address = ? AND vote_date >= ?');
